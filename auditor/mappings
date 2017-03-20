@@ -1,0 +1,13 @@
+import dateutil.parser as date_parser
+
+class Mappings(object):
+    def __init__(self, **kwargs):
+        pass
+
+mappings = {
+    'format_date': lambda d : date_parser.parse(d).strftime('%Y-%m-%d'),
+    'number': lambda x: x,
+    'whitelist': lambda x: x,
+    'blacklist': lambda x: x,
+    'lookup': lambda x: x,
+}
