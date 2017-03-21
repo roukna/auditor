@@ -2,19 +2,13 @@ import json
 import yaml
 import dateutil.parser as date_parser
 
-# these are quick and easy mappings that dont require outside data
-lambdas = {
-    'format_date': lambda d : 
-    'number': lambda x: float(x),
-}
-
 class Mappings(object):
 
     def __init__(self, config, **kwargs):
-        nonlocal lambdas
-        for key in lambdas:
-            setattr(self, key, lambdas[key])
-
+        self.bad_data_string = config['bad_data_string']
+        self.empty_cell_string = config['empty_cell_string']
+        self.blacklisted_string = config['blacklisted_string']
+        self.not_whitelisted_string = config['not_whitelisted_string']
         self.whitelists = {}
         for item in config['whitelist']:
             with open(item['vals_file_path']) as values_file:
@@ -32,33 +26,45 @@ class Mappings(object):
 
     def format_date(self, item, header):
         try:
-            return date_parser.parse(item).strftime('%Y-%m-%d'),
+            if item == '':
+                return self.empty_cell_string
+            else:
+                return date_parser.parse(item).strftime('%Y-%m-%d')
         except:
-            return None
+            return self.bad_data_string
 
     def number(self, item, header):
         try:
-            return float(item)
+            if item == '':
+                return self.empty_cell_string
+            else:
+                return float(item)
         except:
-            return None
+            return self.bad_data_string
 
     def is_whitelist(self, item, header):
         try:
-            return self.whitelists.get(header).get(item)
+            if item == '':
+                return self.empty_cell_string
+            else:
+                return item if item in self.whitelists.get(header) else self.not_whitelisted_string
         except:
-            return None
+            return self.bad_data_string
 
     def is_blacklist(self, item, header):
         try:
-            return self.blacklists.get(header).get(item)
+            if item == '':
+                return self.empty_cell_string
+            else:
+                return self.blacklisted_string if item in self.blacklists.get(header) else item
         except:
-            return None
+            return self.bad_data_string
 
     def lookup(self, item, header):
         try:
             return self.lookups.get(header).get(item)
         except:
-            return None
+            return self.bad_data_string
 
     def parse(self, infile):
         text = infile.read()

@@ -1,1 +1,1 @@
-from auditor.case_worker import CaseWorker
+from auditor.mappings import Mappings
