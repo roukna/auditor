@@ -1,0 +1,60 @@
+# mapping for which header text corresponds to which piece of data
+header_meaning:
+  subject: &subject STUDY_ID
+  lab_type: &lab_type NAME
+  value: &value ORD_VALUE
+  unit: &unit REFERENCE_UNIT
+  test_date: &test_date RESULT_DATE
+
+# put expected headers here, any others will be ignored
+headers: &headers
+  - *subject
+  - *lab_type
+  - *value
+  - *unit
+  - *test_date
+
+# csv format stuff
+csv_conf:
+  delimiter: ","
+  quotechar: "\""
+
+# list of all mappings available
+maps: &maps
+  - &format_date format_date
+  - &number number
+  - &whitelist is_whitelist
+  - &blacklist is_blacklist
+  - &lookup lookup
+
+bad_data_string: "<BAD_DATA>"
+empty_cell_string: "<EMPTY_CELL>"
+blacklisted_string: "<ON_BLACKLIST>"
+not_whitelisted_string: "<NOT_ON_WHITELIST>"
+
+# list of values that are whitelisted for each header
+whitelist: &whitelist_vals
+  - header_name: *lab_type
+    vals_file_path: ./example_labs.yaml
+
+# list of values that are blacklisted
+blacklist: &blacklist_vals
+  - header_name: *subject
+    vals_file_path: ./example_bad_subj.yaml
+
+# list of values with their lookup
+lookups: &lookups
+  - header_name: *value
+    vals_file_path: ./example_lookups.yaml
+
+# mappings try to parse data to another form
+# right now only accepts one mapping per cell
+mappings: &mappings
+  - map: *format_date
+    header: *test_date
+  - map: *number
+    header: *value
+  - map: *blacklist
+    header: *subject
+  - map: *whitelist
+    header: *lab_type
