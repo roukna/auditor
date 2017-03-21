@@ -36,9 +36,9 @@ def main(args=docopt(docstr)):
     data = csv.reader(csv_file, **config['csv_conf'])
 
     if not args[_do_clean]:
-        do_audit(data)
+        new_rows = do_audit(data)
     else:
-        do_clean(data)
+        new_rows = do_clean(data)
 
     if args.get(_output):
         with open(args[_output], 'w') as outfile:
