@@ -1,13 +1,72 @@
+import json
+import yaml
 import dateutil.parser as date_parser
 
-class Mappings(object):
-    def __init__(self, **kwargs):
-        pass
-
-mappings = {
-    'format_date': lambda d : date_parser.parse(d).strftime('%Y-%m-%d'),
-    'number': lambda x: x,
-    'whitelist': lambda x: x,
-    'blacklist': lambda x: x,
-    'lookup': lambda x: x,
+# these are quick and easy mappings that dont require outside data
+lambdas = {
+    'format_date': lambda d : 
+    'number': lambda x: float(x),
 }
+
+class Mappings(object):
+
+    def __init__(self, config, **kwargs):
+        nonlocal lambdas
+        for key in lambdas:
+            setattr(self, key, lambdas[key])
+
+        self.whitelists = {}
+        for item in config['whitelist']:
+            with open(item['vals_file_path']) as values_file:
+                self.whitelists[item['header_name']] = self.parse(values_file)
+
+        self.blacklists = {}
+        for item in config['blacklist']:
+            with open(item['vals_file_path']) as values_file:
+                self.blacklists[item['header_name']] = self.parse(values_file)
+
+        self.lookups = {}
+        for item in config['lookups']:
+            with open(item['vals_file_path']) as values_file:
+                self.lookups[item['header_name']] = self.parse(values_file)
+
+    def format_date(self, item, header):
+        try:
+            return date_parser.parse(item).strftime('%Y-%m-%d'),
+        except:
+            return None
+
+    def number(self, item, header):
+        try:
+            return float(item)
+        except:
+            return None
+
+    def is_whitelist(self, item, header):
+        try:
+            return self.whitelists.get(header).get(item)
+        except:
+            return None
+
+    def is_blacklist(self, item, header):
+        try:
+            return self.blacklists.get(header).get(item)
+        except:
+            return None
+
+    def lookup(self, item, header):
+        try:
+            return self.lookups.get(header).get(item)
+        except:
+            return None
+
+    def parse(self, infile):
+        text = infile.read()
+        try:
+            values = yaml.load(text)
+        except:
+            print('Value files must be written in yaml.')
+        return values
+
+
+

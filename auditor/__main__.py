@@ -13,7 +13,7 @@ import csv
 from docopt import docopt
 import yaml
 
-from .mappings import Mapping
+from .mappings import Mappings
 
 _file = '<file>'
 _config = '<config>'
@@ -33,13 +33,13 @@ def main(args=docopt(docstr)):
     new_rows = []
     indices = None
     new_header = None
+    mappings = Mappings(config)
     for index, row in enumerate(data):
         if index == 0:
             new_header = get_header(row)
             indices = [row.index(header) for header in new_header]
             new_rows.append(new_header)
         else:
-            mappings = Mapping()
             apply_map = get_map(headers, mappings)
             new_row = get_new_data_row(row, indices, new_header, apply_map)
             new_rows.append(new_row)
@@ -59,7 +59,7 @@ def get_map(headers, mappings):
         nonlocal mappings
         for mapping in config['mappings']:
             if headers[index] == mapping['header']:
-                return getattr(mappings, mapping['map'])(cell)
+                return getattr(mappings, mapping['map'])(item=cell, header=headers[index])
     return apply_map
 
 def get_new_data_row(row, indices, header, apply_map):

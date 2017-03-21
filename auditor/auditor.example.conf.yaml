@@ -23,8 +23,8 @@ csv_conf:
 maps: &maps
   - &format_date format_date
   - &number number
-  - &whitelist whitelist
-  - &blacklist blacklist
+  - &whitelist is_whitelist
+  - &blacklist is_blacklist
   - &lookup lookup
 
 
@@ -53,12 +53,3 @@ mappings: &mappings
     header: *subject
   - map: *whitelist
     header: *lab_type
-
-# # list of all validation tests available
-# tests:
-#   - &is_number is_number
-
-# validators: &validators
-#   - tests:
-#       - header: *value
-#         test: is_number
