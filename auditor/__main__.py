@@ -8,6 +8,12 @@ Options:
   -o <output.csv> --output=<output.csv>         optional output file for results
   -c --clean                                    remove rows of a csv that have control strings
 
+Instructions:
+  First run auditor on the file you want to alter. This will give a csv with the same number of
+rows with some cells replaced by control strings.
+  Then run auditor with the -c flag on the control string output. This will give a much smaller
+csv that only has the rows that you want. No blacklisted items, only whitelisted, no empty data
+no bad data.
 """
 import csv
 
