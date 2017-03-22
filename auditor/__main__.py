@@ -1,12 +1,13 @@
 docstr = """
 Auditor
 
-Usage: auditor.py [-hc] (<file> <config>) [-o <output.csv>] [-c --clean]
+Usage: auditor.py [-hcv] (<file> <config>) [-o <output.csv>] [-c --clean] [-v --verbose]
 
 Options:
   -h --help                                     show this message and exit
   -o <output.csv> --output=<output.csv>         optional output file for results
   -c --clean                                    remove rows of a csv that have control strings
+  -v --verbose                                  print errors with the mappings handler
 
 Instructions:
   First run auditor on the file you want to alter. This will give a csv with the same number of
@@ -14,6 +15,9 @@ rows with some cells replaced by control strings.
   Then run auditor with the -c flag on the control string output. This will give a much smaller
 csv that only has the rows that you want. No blacklisted items, only whitelisted, no empty data
 no bad data.
+
+$ auditor raw_data.txt auditor.conf.yaml -o data/audited.unclean.csv -v > logs/auditor.unclean.log
+$ auditor -c data/audited.unclean.csv auditor.conf.yaml -o data/auditor.clean.csv -v > logs/auditor.clean.log
 """
 import csv
 
@@ -26,6 +30,7 @@ _file = '<file>'
 _config = '<config>'
 _output = '--output'
 _do_clean = '--clean'
+_verbose = '--verbose'
 
 def main(args=docopt(docstr)):
     with open(args[_config], 'r') as config_file:
@@ -37,9 +42,13 @@ def main(args=docopt(docstr)):
 
     if not args[_do_clean]:
         data = do_add_headers(data, config.get('new_headers'))
-        new_rows = do_audit(data)
+        new_rows = do_audit(data, verbose=args[_verbose])
     else:
         new_rows = do_clean(data)
+
+    if args[_do_clean] and config.get('sort'):
+        index = config['headers'].index(config['sort']['header'])
+        new_rows.sort(key=lambda row : row[index])
 
     if args.get(_output):
         with open(args[_output], 'w') as outfile:
@@ -71,11 +80,11 @@ def do_add_headers(data, new_headers):
                     new_rows.append(row)
     return new_rows
 
-def do_audit(data):
+def do_audit(data, verbose):
     new_rows = []
     indices = None
     new_header = None
-    mappings = Mappings(config)
+    mappings = Mappings(config, verbose=verbose)
     for index, row in enumerate(data):
         if index == 0:
             new_header = get_header(row)

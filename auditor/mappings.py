@@ -13,6 +13,8 @@ class Mappings(object):
         self.no_regex_match = config['error_strings']['no_regex_match']
         self.empty_okay_string = config['control_strings']['empty_okay']
 
+        self.verbose = kwargs.get('verbose')
+
         self.whitelists = {}
         for item in config['whitelist']:
             with open(item['vals_file_path']) as values_file:
@@ -42,7 +44,9 @@ class Mappings(object):
             else:
                 return date_parser.parse(item).strftime('%Y-%m-%d')
         except Exception as ex:
-            print(ex)
+            if self.verbose:
+                print('format_date exception')
+                print(ex)
             return self.bad_data
 
     def is_whitelist(self, **kwargs):
@@ -54,7 +58,9 @@ class Mappings(object):
             else:
                 return item if item in self.whitelists.get(header) else self.not_whitelisted
         except Exception as ex:
-            print(ex)
+            if self.verbose:
+                print('is_whitelist exception')
+                print(ex)
             return self.bad_data
 
     def is_blacklist(self, **kwargs):
@@ -66,7 +72,9 @@ class Mappings(object):
             else:
                 return self.blacklisted if item in self.blacklists.get(header) else item
         except Exception as ex:
-            print(ex)
+            if self.verbose:
+                print('is_blacklist exception')
+                print(ex)
             return self.bad_data
 
     def regex(self, **kwargs):
@@ -77,19 +85,23 @@ class Mappings(object):
                 return self.empty_cell
             else:
                 regexs = self.regexs.get(header)
-                for r in regexs.keys():
-                    regex = re.compile(r)
-                    match = regex.match(item)
+                for regex in regexs:
+                    pattern = re.compile(regex['pattern'])
+                    match = pattern.match(item)
                     if match:
                         try:
                             return match.group(1)
                         except Exception as ex:
-                            print(ex)
-                            return regex[r]
+                            if self.verbose:
+                                print('deep regex exception')
+                                print(ex)
+                                return regex.get('value')
                 # no match found
                 return self.no_regex_match
         except Exception as ex:
-            print(ex)
+            if self.verbose:
+                print('regex exception')
+                print(ex)
             return self.bad_data
 
     def empty_okay(self, **kwargs):
@@ -100,24 +112,31 @@ class Mappings(object):
             return item
 
     def greater_equal(self, **kwargs):
-        item = kwargs.get('item')
-        headers = kwargs.get('headers')
-        row = kwargs.get('row')
-        arg1 = kwargs.get('map').get('args')[0]
-        arg1_val = row[headers.index(arg1)]
-        arg2 = kwargs.get('map').get('args')[1]
-        arg2_val = row[headers.index(arg2)]
-        retval_header = kwargs.get('map').get('retval')[0]
-        retval = row[headers.index(arg1)]
-        return retval if arg1_val >= arg2_val else self.bad_data
+        try:
+            item = kwargs.get('item')
+            headers = kwargs.get('headers')
+            row = kwargs.get('row')
+            arg1 = kwargs.get('map').get('args')[0]
+            arg1_val = row[headers.index(arg1)]
+            arg2 = kwargs.get('map').get('args')[1]
+            arg2_val = row[headers.index(arg2)]
+            retval_header = kwargs.get('map').get('retval')[0]
+            retval = row[headers.index(retval_header)]
+            return retval if arg1_val >= arg2_val else self.bad_data
+        except Exception as ex:
+            if self.verbose:
+                print('greater_equal exception')
+                print(ex)
+            return self.bad_data
 
     def parse(self, infile):
         text = infile.read()
         try:
             values = yaml.load(text)
         except Exception as ex:
-            print(ex)
-            print('Value files must be written in yaml.')
+            if self.verbose:
+                print(ex)
+                print('Value files must be written in yaml.')
         return values if values else []
 
 

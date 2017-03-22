@@ -6,6 +6,9 @@ header_meaning:
   unit: &unit REFERENCE_UNIT
   test_date: &test_date RESULT_DATE
 
+sort:
+  header: *subject
+
 new_headers:
   consent_date: 
     name: &consent_date consent_date
