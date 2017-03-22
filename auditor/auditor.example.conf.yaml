@@ -12,7 +12,7 @@ new_headers:
     key: *subject
     value: *consent_date
     default: null
-    lookup_file: ./consent_dates.yaml
+    lookup_file: &consent_dates_path ./consent_dates.yaml
 
 # put expected headers here, any others will be ignored
 headers: &headers
@@ -31,12 +31,14 @@ csv_conf:
 # list of all mappings available
 maps: &maps
   - &format_date format_date
-  - &number number
   - &whitelist is_whitelist
   - &blacklist is_blacklist
   - &regex regex
   - &empty_okay empty_okay
-  - &greater_equal__test_date greater_equal__test_date
+
+# these are maps that use more than one cell
+arg_maps:
+  - &greater_equal greater_equal
 
 control_strings:
   empty_okay: "<NO_VALUE_NEEDED>"
@@ -81,4 +83,9 @@ mappings: &mappings
   - header: *unit
     maps: [*empty_okay]
   - header: *consent_date
-    maps: [*empty_okay]
+    maps:
+      - func: *greater_equal
+        args: [*test_date, *consent_date]
+        retval: [*consent_date]
+      - *format_date
+

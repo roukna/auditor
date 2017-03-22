@@ -103,18 +103,21 @@ def get_map(headers, mappings):
         for mapping in config['mappings']:
             if headers[index] == mapping['header']:
                 for map_index, my_map in enumerate(mapping['maps']):
-                    cell = getattr(mappings, mapping['maps'][map_index])(item=cell,
-                                                                         header=headers[index],
-                                                                         row=row)
+                    kwargs = {
+                        'item': cell,
+                        'headers': headers,
+                        'header': headers[index],
+                        'index': index,
+                        'row': row,
+                        'map': mapping['maps'][map_index]
+                    }
+                    cell = mappings.handler(**kwargs)
         return cell
     return apply_map
 
 def get_new_data_row(row, indices, header, apply_map):
     raw = [row[index] for index in indices]
-    print(raw)
     mapped = [apply_map(index, raw) for index, cell in enumerate(raw)]
-    print(mapped)
-    print()
     valid = True
     for cell in mapped:
         if cell == '' or cell == None:

@@ -28,7 +28,14 @@ class Mappings(object):
             with open(item['vals_file_path']) as values_file:
                 self.regexs[item['header_name']] = self.parse(values_file)
 
-    def format_date(self, item, header, row=None):
+    def handler(self, **kwargs):
+        map = kwargs['map']
+        if type(map) != type('string'):
+            map = map['func']
+        return getattr(self, map)(**kwargs)
+
+    def format_date(self, **kwargs):
+        item = kwargs.get('item')
         try:
             if item == '':
                 return self.empty_cell
@@ -38,17 +45,9 @@ class Mappings(object):
             print(ex)
             return self.bad_data
 
-    def number(self, item, header, row=None):
-        try:
-            if item == '':
-                return self.empty_cell
-            else:
-                return float(item)
-        except Exception as ex:
-            print(ex)
-            return self.bad_data
-
-    def is_whitelist(self, item, header, row=None):
+    def is_whitelist(self, **kwargs):
+        item = kwargs.get('item')
+        header = kwargs.get('header')
         try:
             if item == '':
                 return self.empty_cell
@@ -58,7 +57,9 @@ class Mappings(object):
             print(ex)
             return self.bad_data
 
-    def is_blacklist(self, item, header, row=None):
+    def is_blacklist(self, **kwargs):
+        item = kwargs.get('item')
+        header = kwargs.get('header')
         try:
             if item == '':
                 return self.empty_cell
@@ -68,7 +69,9 @@ class Mappings(object):
             print(ex)
             return self.bad_data
 
-    def regex(self, item, header, row=None):
+    def regex(self, **kwargs):
+        item = kwargs.get('item')
+        header = kwargs.get('header')
         try:
             if item == '':
                 return self.empty_cell
@@ -89,11 +92,24 @@ class Mappings(object):
             print(ex)
             return self.bad_data
 
-    def empty_okay(self, item, header, row=None):
+    def empty_okay(self, **kwargs):
+        item = kwargs.get('item')
         if item == '' or item == None:
             return self.empty_okay_string
         else:
             return item
+
+    def greater_equal(self, **kwargs):
+        item = kwargs.get('item')
+        headers = kwargs.get('headers')
+        row = kwargs.get('row')
+        arg1 = kwargs.get('map').get('args')[0]
+        arg1_val = row[headers.index(arg1)]
+        arg2 = kwargs.get('map').get('args')[1]
+        arg2_val = row[headers.index(arg2)]
+        retval_header = kwargs.get('map').get('retval')[0]
+        retval = row[headers.index(arg1)]
+        return retval if arg1_val >= arg2_val else self.bad_data
 
     def parse(self, infile):
         text = infile.read()
