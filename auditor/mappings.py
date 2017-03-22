@@ -1,14 +1,20 @@
 import json
+import re
 import yaml
 import dateutil.parser as date_parser
 
 class Mappings(object):
 
     def __init__(self, config, **kwargs):
-        self.bad_data_string = config['bad_data_string']
-        self.empty_cell_string = config['empty_cell_string']
-        self.blacklisted_string = config['blacklisted_string']
-        self.not_whitelisted_string = config['not_whitelisted_string']
+        self.bad_data = config['error_strings']['bad_data']
+        self.empty_cell = config['error_strings']['empty_cell']
+        self.blacklisted = config['error_strings']['blacklisted']
+        self.not_whitelisted = config['error_strings']['not_whitelisted']
+        self.no_regex_match = config['error_strings']['no_regex_match']
+        self.empty_okay_string = config['control_strings']['empty_okay']
+
+        self.verbose = kwargs.get('verbose')
+
         self.whitelists = {}
         for item in config['whitelist']:
             with open(item['vals_file_path']) as values_file:
@@ -19,60 +25,119 @@ class Mappings(object):
             with open(item['vals_file_path']) as values_file:
                 self.blacklists[item['header_name']] = self.parse(values_file)
 
-        self.lookups = {}
-        for item in config['lookups']:
+        self.regexs = {}
+        for item in config['regexs']:
             with open(item['vals_file_path']) as values_file:
-                self.lookups[item['header_name']] = self.parse(values_file)
+                self.regexs[item['header_name']] = self.parse(values_file)
 
-    def format_date(self, item, header):
+    def handler(self, **kwargs):
+        map = kwargs['map']
+        if type(map) != type('string'):
+            map = map['func']
+        return getattr(self, map)(**kwargs)
+
+    def format_date(self, **kwargs):
+        item = kwargs.get('item')
         try:
             if item == '':
-                return self.empty_cell_string
+                return self.empty_cell
             else:
                 return date_parser.parse(item).strftime('%Y-%m-%d')
-        except:
-            return self.bad_data_string
+        except Exception as ex:
+            if self.verbose:
+                print('format_date exception')
+                print(ex)
+            return self.bad_data
 
-    def number(self, item, header):
+    def is_whitelist(self, **kwargs):
+        item = kwargs.get('item')
+        header = kwargs.get('header')
         try:
             if item == '':
-                return self.empty_cell_string
+                return self.empty_cell
             else:
-                return float(item)
-        except:
-            return self.bad_data_string
+                return item if item in self.whitelists.get(header) else self.not_whitelisted
+        except Exception as ex:
+            if self.verbose:
+                print('is_whitelist exception')
+                print(ex)
+            return self.bad_data
 
-    def is_whitelist(self, item, header):
+    def is_blacklist(self, **kwargs):
+        item = kwargs.get('item')
+        header = kwargs.get('header')
         try:
             if item == '':
-                return self.empty_cell_string
+                return self.empty_cell
             else:
-                return item if item in self.whitelists.get(header) else self.not_whitelisted_string
-        except:
-            return self.bad_data_string
+                return self.blacklisted if item in self.blacklists.get(header) else item
+        except Exception as ex:
+            if self.verbose:
+                print('is_blacklist exception')
+                print(ex)
+            return self.bad_data
 
-    def is_blacklist(self, item, header):
+    def regex(self, **kwargs):
+        item = kwargs.get('item')
+        header = kwargs.get('header')
         try:
             if item == '':
-                return self.empty_cell_string
+                return self.empty_cell
             else:
-                return self.blacklisted_string if item in self.blacklists.get(header) else item
-        except:
-            return self.bad_data_string
+                regexs = self.regexs.get(header)
+                for regex in regexs:
+                    pattern = re.compile(regex['pattern'])
+                    match = pattern.match(item)
+                    if match:
+                        try:
+                            return match.group(1)
+                        except Exception as ex:
+                            if self.verbose:
+                                print('deep regex exception')
+                                print(ex)
+                                return regex.get('value')
+                # no match found
+                return self.no_regex_match
+        except Exception as ex:
+            if self.verbose:
+                print('regex exception')
+                print(ex)
+            return self.bad_data
 
-    def lookup(self, item, header):
+    def empty_okay(self, **kwargs):
+        item = kwargs.get('item')
+        if item == '' or item == None:
+            return self.empty_okay_string
+        else:
+            return item
+
+    def greater_equal(self, **kwargs):
         try:
-            return self.lookups.get(header).get(item)
-        except:
-            return self.bad_data_string
+            item = kwargs.get('item')
+            headers = kwargs.get('headers')
+            row = kwargs.get('row')
+            arg1 = kwargs.get('map').get('args')[0]
+            arg1_val = row[headers.index(arg1)]
+            arg2 = kwargs.get('map').get('args')[1]
+            arg2_val = row[headers.index(arg2)]
+            retval_header = kwargs.get('map').get('retval')[0]
+            retval = row[headers.index(retval_header)]
+            return retval if arg1_val >= arg2_val else self.bad_data
+        except Exception as ex:
+            if self.verbose:
+                print('greater_equal exception')
+                print(ex)
+            return self.bad_data
 
     def parse(self, infile):
         text = infile.read()
         try:
             values = yaml.load(text)
-        except:
-            print('Value files must be written in yaml.')
-        return values
+        except Exception as ex:
+            if self.verbose:
+                print(ex)
+                print('Value files must be written in yaml.')
+        return values if values else []
 
 
 

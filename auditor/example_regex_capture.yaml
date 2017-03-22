@@ -1,0 +1,12 @@
+# Keys are regexs, if the regex captures, it the cell with be the first group
+# otherwise it will return the value of the key: value pair
+# If a regex applies to more than one the first will be applied
+#
+# These throw exceptions like no tommorrow but most of those are expected
+- pattern: '1[aA]'
+  value: 1A
+- pattern: 'Negative'
+  value: NEGATIVE
+- pattern: 'N|no'
+  value: "NO"
+- pattern: '([0-9]*|[0-9]+\.[0-9]+)'

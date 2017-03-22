@@ -6,6 +6,17 @@ header_meaning:
   unit: &unit REFERENCE_UNIT
   test_date: &test_date RESULT_DATE
 
+sort:
+  header: *subject
+
+new_headers:
+  consent_date: 
+    name: &consent_date consent_date
+    key: *subject
+    value: *consent_date
+    default: null
+    lookup_file: &consent_dates_path ./consent_dates.yaml
+
 # put expected headers here, any others will be ignored
 headers: &headers
   - *subject
@@ -13,6 +24,7 @@ headers: &headers
   - *value
   - *unit
   - *test_date
+  - *consent_date
 
 # csv format stuff
 csv_conf:
@@ -22,39 +34,61 @@ csv_conf:
 # list of all mappings available
 maps: &maps
   - &format_date format_date
-  - &number number
   - &whitelist is_whitelist
   - &blacklist is_blacklist
-  - &lookup lookup
+  - &regex regex
+  - &empty_okay empty_okay
 
-bad_data_string: "<BAD_DATA>"
-empty_cell_string: "<EMPTY_CELL>"
-blacklisted_string: "<ON_BLACKLIST>"
-not_whitelisted_string: "<NOT_ON_WHITELIST>"
+# these are maps that use more than one cell
+arg_maps:
+  - &greater_equal greater_equal
+
+control_strings:
+  empty_okay: "<NO_VALUE_NEEDED>"
+
+error_strings:
+  bad_data: "<BAD_DATA>"
+  empty_cell: "<EMPTY_CELL>"
+  blacklisted: "<ON_BLACKLIST>"
+  not_whitelisted: "<NOT_ON_WHITELIST>"
+  no_regex_match: "<NO_REGEX_MATCH_FOUND>"
 
 # list of values that are whitelisted for each header
 whitelist: &whitelist_vals
   - header_name: *lab_type
     vals_file_path: ./example_labs.yaml
+  - header_name: *subject
+    vals_file_path: ./example_good_subj.yaml
 
 # list of values that are blacklisted
 blacklist: &blacklist_vals
   - header_name: *subject
     vals_file_path: ./example_bad_subj.yaml
-
-# list of values with their lookup
-lookups: &lookups
   - header_name: *value
-    vals_file_path: ./example_lookups.yaml
+    vals_file_path: ./empty.yaml
+
+# capture something and pass it along
+regexs: &regexs
+  - header_name: *value
+    vals_file_path: ./example_regex_capture.yaml
 
 # mappings try to parse data to another form
-# right now only accepts one mapping per cell
+# will pass the value through the maps in left to right order
 mappings: &mappings
-  - map: *format_date
-    header: *test_date
-  - map: *number
-    header: *value
-  - map: *blacklist
-    header: *subject
-  - map: *whitelist
-    header: *lab_type
+  - header: *test_date
+    maps: [*format_date]
+  - header: *lab_type
+    maps: []
+  - header: *value
+    maps: [*regex, *blacklist]
+  - header: *subject
+    maps: [*blacklist]
+  - header: *unit
+    maps: [*empty_okay]
+  - header: *consent_date
+    maps:
+      - func: *greater_equal
+        args: [*test_date, *consent_date]
+        retval: [*consent_date]
+      - *format_date
+

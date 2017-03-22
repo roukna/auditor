@@ -1,12 +1,13 @@
 docstr = """
 Auditor
 
-Usage: auditor.py [-hc] (<file> <config>) [-o <output.csv>] [-c --clean]
+Usage: auditor.py [-hcv] (<file> <config>) [-o <output.csv>] [-c --clean] [-v --verbose]
 
 Options:
   -h --help                                     show this message and exit
   -o <output.csv> --output=<output.csv>         optional output file for results
   -c --clean                                    remove rows of a csv that have control strings
+  -v --verbose                                  print errors with the mappings handler
 
 Instructions:
   First run auditor on the file you want to alter. This will give a csv with the same number of
@@ -14,6 +15,9 @@ rows with some cells replaced by control strings.
   Then run auditor with the -c flag on the control string output. This will give a much smaller
 csv that only has the rows that you want. No blacklisted items, only whitelisted, no empty data
 no bad data.
+
+$ auditor raw_data.txt auditor.conf.yaml -o data/audited.unclean.csv -v > logs/auditor.unclean.log
+$ auditor -c data/audited.unclean.csv auditor.conf.yaml -o data/auditor.clean.csv -v > logs/auditor.clean.log
 """
 import csv
 
@@ -26,6 +30,7 @@ _file = '<file>'
 _config = '<config>'
 _output = '--output'
 _do_clean = '--clean'
+_verbose = '--verbose'
 
 def main(args=docopt(docstr)):
     with open(args[_config], 'r') as config_file:
@@ -36,9 +41,14 @@ def main(args=docopt(docstr)):
     data = csv.reader(csv_file, **config['csv_conf'])
 
     if not args[_do_clean]:
-        new_rows = do_audit(data)
+        data = do_add_headers(data, config.get('new_headers'))
+        new_rows = do_audit(data, verbose=args[_verbose])
     else:
         new_rows = do_clean(data)
+
+    if args[_do_clean] and config.get('sort'):
+        index = config['headers'].index(config['sort']['header'])
+        new_rows.sort(key=lambda row : row[index])
 
     if args.get(_output):
         with open(args[_output], 'w') as outfile:
@@ -46,11 +56,35 @@ def main(args=docopt(docstr)):
     else:
         print(rows_format(new_rows))
 
-def do_audit(data):
+def do_add_headers(data, new_headers):
+    new_rows = []
+    for key in new_headers.keys():
+        header_data = new_headers[key]
+        with open(header_data['lookup_file'], 'r') as lookup_file:
+            lookup_data = yaml.load(lookup_file.read())
+        for index, row in enumerate(data):
+            if index == 0:
+                old_headers = row
+                row.append(new_headers[key]['name'])
+                try:
+                    new_rows[index] = row
+                except IndexError:
+                    new_rows.append(row)
+            else:
+                lookup_key = row[old_headers.index(header_data['key'])]
+                lookup_value = lookup_data.get(lookup_key) or header_data['default'] or ''
+                row.append(lookup_value)
+                try:
+                    new_rows[index] = row
+                except IndexError:
+                    new_rows.append(row)
+    return new_rows
+
+def do_audit(data, verbose):
     new_rows = []
     indices = None
     new_header = None
-    mappings = Mappings(config)
+    mappings = Mappings(config, verbose=verbose)
     for index, row in enumerate(data):
         if index == 0:
             new_header = get_header(row)
@@ -71,36 +105,41 @@ def get_header(row):
     return new_row
 
 def get_map(headers, mappings):
-    def apply_map(index, cell):
+    def apply_map(index, row):
         nonlocal headers
         nonlocal mappings
+        cell = row[index]
         for mapping in config['mappings']:
             if headers[index] == mapping['header']:
-                return getattr(mappings, mapping['map'])(item=cell, header=headers[index])
-        return cell if cell else config['empty_cell_string']
+                for map_index, my_map in enumerate(mapping['maps']):
+                    kwargs = {
+                        'item': cell,
+                        'headers': headers,
+                        'header': headers[index],
+                        'index': index,
+                        'row': row,
+                        'map': mapping['maps'][map_index]
+                    }
+                    cell = mappings.handler(**kwargs)
+        return cell
     return apply_map
 
 def get_new_data_row(row, indices, header, apply_map):
     raw = [row[index] for index in indices]
-    mapped = [apply_map(index, cell) for index, cell in enumerate(raw)]
+    mapped = [apply_map(index, raw) for index, cell in enumerate(raw)]
     valid = True
     for cell in mapped:
-        if cell == '':
+        if cell == '' or cell == None:
             valid = False
     return mapped if valid else None
 
 def do_clean(data):
     new_rows = []
-    control_strings = [
-        config['bad_data_string'],
-        config['empty_cell_string'],
-        config['blacklisted_string'],
-        config['not_whitelisted_string'],
-    ]
+    error_strings = config['error_strings'].values()
     for row in data:
         valid = True
         for cell in row:
-            if cell in control_strings:
+            if cell in error_strings:
                 valid = False
         if valid:
             new_rows.append(row)
