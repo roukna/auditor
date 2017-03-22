@@ -1,0 +1,5 @@
+# Keys are regexs, if the regex captures, it the cell with be the first group
+# otherwise it will return the value of the key: value pair
+'$1[aA]^': 1A
+'([0-9]*|[0-9]+\.[0-9]+)': null
+'$Negative^': NEGATIVE

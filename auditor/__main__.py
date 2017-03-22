@@ -76,8 +76,9 @@ def get_map(headers, mappings):
         nonlocal mappings
         for mapping in config['mappings']:
             if headers[index] == mapping['header']:
-                return getattr(mappings, mapping['map'])(item=cell, header=headers[index])
-        return cell if cell else config['empty_cell_string']
+                for map_index, my_map in enumerate(mapping['maps']):
+                    cell = getattr(mappings, mapping['maps'][map_index])(item=cell, header=headers[index])
+        return cell
     return apply_map
 
 def get_new_data_row(row, indices, header, apply_map):
@@ -85,22 +86,17 @@ def get_new_data_row(row, indices, header, apply_map):
     mapped = [apply_map(index, cell) for index, cell in enumerate(raw)]
     valid = True
     for cell in mapped:
-        if cell == '':
+        if cell == '' or cell == None:
             valid = False
     return mapped if valid else None
 
 def do_clean(data):
     new_rows = []
-    control_strings = [
-        config['bad_data_string'],
-        config['empty_cell_string'],
-        config['blacklisted_string'],
-        config['not_whitelisted_string'],
-    ]
+    error_strings = config['error_strings'].values()
     for row in data:
         valid = True
         for cell in row:
-            if cell in control_strings:
+            if cell in error_strings:
                 valid = False
         if valid:
             new_rows.append(row)
