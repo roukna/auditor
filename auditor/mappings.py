@@ -28,7 +28,7 @@ class Mappings(object):
             with open(item['vals_file_path']) as values_file:
                 self.regexs[item['header_name']] = self.parse(values_file)
 
-    def format_date(self, item, header):
+    def format_date(self, item, header, row=None):
         try:
             if item == '':
                 return self.empty_cell
@@ -38,7 +38,7 @@ class Mappings(object):
             print(ex)
             return self.bad_data
 
-    def number(self, item, header):
+    def number(self, item, header, row=None):
         try:
             if item == '':
                 return self.empty_cell
@@ -48,7 +48,7 @@ class Mappings(object):
             print(ex)
             return self.bad_data
 
-    def is_whitelist(self, item, header):
+    def is_whitelist(self, item, header, row=None):
         try:
             if item == '':
                 return self.empty_cell
@@ -58,7 +58,7 @@ class Mappings(object):
             print(ex)
             return self.bad_data
 
-    def is_blacklist(self, item, header):
+    def is_blacklist(self, item, header, row=None):
         try:
             if item == '':
                 return self.empty_cell
@@ -68,7 +68,7 @@ class Mappings(object):
             print(ex)
             return self.bad_data
 
-    def regex(self, item, header):
+    def regex(self, item, header, row=None):
         try:
             if item == '':
                 return self.empty_cell
@@ -89,7 +89,7 @@ class Mappings(object):
             print(ex)
             return self.bad_data
 
-    def empty_okay(self, item, header):
+    def empty_okay(self, item, header, row=None):
         if item == '' or item == None:
             return self.empty_okay_string
         else:

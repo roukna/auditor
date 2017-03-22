@@ -6,6 +6,14 @@ header_meaning:
   unit: &unit REFERENCE_UNIT
   test_date: &test_date RESULT_DATE
 
+new_headers:
+  consent_date: 
+    name: &consent_date consent_date
+    key: *subject
+    value: *consent_date
+    default: null
+    lookup_file: ./consent_dates.yaml
+
 # put expected headers here, any others will be ignored
 headers: &headers
   - *subject
@@ -13,6 +21,7 @@ headers: &headers
   - *value
   - *unit
   - *test_date
+  - *consent_date
 
 # csv format stuff
 csv_conf:
@@ -27,6 +36,7 @@ maps: &maps
   - &blacklist is_blacklist
   - &regex regex
   - &empty_okay empty_okay
+  - &greater_equal__test_date greater_equal__test_date
 
 control_strings:
   empty_okay: "<NO_VALUE_NEEDED>"
@@ -69,4 +79,6 @@ mappings: &mappings
   - header: *subject
     maps: [*blacklist]
   - header: *unit
+    maps: [*empty_okay]
+  - header: *consent_date
     maps: [*empty_okay]

@@ -36,6 +36,7 @@ def main(args=docopt(docstr)):
     data = csv.reader(csv_file, **config['csv_conf'])
 
     if not args[_do_clean]:
+        data = do_add_headers(data, config.get('new_headers'))
         new_rows = do_audit(data)
     else:
         new_rows = do_clean(data)
@@ -45,6 +46,30 @@ def main(args=docopt(docstr)):
             outfile.write(rows_format(new_rows))
     else:
         print(rows_format(new_rows))
+
+def do_add_headers(data, new_headers):
+    new_rows = []
+    for key in new_headers.keys():
+        header_data = new_headers[key]
+        with open(header_data['lookup_file'], 'r') as lookup_file:
+            lookup_data = yaml.load(lookup_file.read())
+        for index, row in enumerate(data):
+            if index == 0:
+                old_headers = row
+                row.append(new_headers[key]['name'])
+                try:
+                    new_rows[index] = row
+                except IndexError:
+                    new_rows.append(row)
+            else:
+                lookup_key = row[old_headers.index(header_data['key'])]
+                lookup_value = lookup_data.get(lookup_key) or header_data['default'] or ''
+                row.append(lookup_value)
+                try:
+                    new_rows[index] = row
+                except IndexError:
+                    new_rows.append(row)
+    return new_rows
 
 def do_audit(data):
     new_rows = []
@@ -71,19 +96,25 @@ def get_header(row):
     return new_row
 
 def get_map(headers, mappings):
-    def apply_map(index, cell):
+    def apply_map(index, row):
         nonlocal headers
         nonlocal mappings
+        cell = row[index]
         for mapping in config['mappings']:
             if headers[index] == mapping['header']:
                 for map_index, my_map in enumerate(mapping['maps']):
-                    cell = getattr(mappings, mapping['maps'][map_index])(item=cell, header=headers[index])
+                    cell = getattr(mappings, mapping['maps'][map_index])(item=cell,
+                                                                         header=headers[index],
+                                                                         row=row)
         return cell
     return apply_map
 
 def get_new_data_row(row, indices, header, apply_map):
     raw = [row[index] for index in indices]
-    mapped = [apply_map(index, cell) for index, cell in enumerate(raw)]
+    print(raw)
+    mapped = [apply_map(index, raw) for index, cell in enumerate(raw)]
+    print(mapped)
+    print()
     valid = True
     for cell in mapped:
         if cell == '' or cell == None:
