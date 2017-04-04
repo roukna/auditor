@@ -15,7 +15,7 @@ new_headers:
     key: *subject
     value: *consent_date
     default: null
-    lookup_file: &consent_dates_path ./consent_dates.yaml
+    lookup_file: &consent_dates_path configs/consent_dates.yaml
 
 # put expected headers here, any others will be ignored
 headers: &headers
@@ -56,21 +56,21 @@ error_strings:
 # list of values that are whitelisted for each header
 whitelist: &whitelist_vals
   - header_name: *lab_type
-    vals_file_path: ./example_labs.yaml
+    vals_file_path: configs/example_labs.yaml
   - header_name: *subject
-    vals_file_path: ./example_good_subj.yaml
+    vals_file_path: configs/example_good_subj.yaml
 
 # list of values that are blacklisted
 blacklist: &blacklist_vals
   - header_name: *subject
-    vals_file_path: ./example_bad_subj.yaml
+    vals_file_path: configs/example_bad_subj.yaml
   - header_name: *value
-    vals_file_path: ./empty.yaml
+    vals_file_path: configs/empty.yaml
 
 # capture something and pass it along
 regexs: &regexs
   - header_name: *value
-    vals_file_path: ./example_regex_capture.yaml
+    vals_file_path: configs/example_regex_capture.yaml
 
 # mappings try to parse data to another form
 # will pass the value through the maps in left to right order
