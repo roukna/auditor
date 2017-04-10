@@ -61,6 +61,8 @@ def main(args=docopt(docstr)):
 
 def do_add_headers(data, new_headers):
     new_rows = []
+    if not new_headers:
+        return data
     for key in new_headers.keys():
         header_data = new_headers[key]
         with open(header_data['lookup_file'], 'r') as lookup_file:
@@ -144,6 +146,9 @@ def do_clean(data):
         for cell in row:
             if cell in error_strings:
                 valid = False
+        for index, cell in enumerate(row):
+            if cell == config['control_strings']['empty_okay']:
+                row[index] = ''
         if valid:
             new_rows.append(row)
     return new_rows
