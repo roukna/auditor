@@ -48,7 +48,10 @@ def main(args=docopt(docstr)):
 
     if args[_do_clean] and config.get('sort'):
         index = config['headers'].index(config['sort']['header'])
+        header = new_rows[0]
+        new_rows = new_rows[1:]
         new_rows.sort(key=lambda row : row[index])
+        new_rows.insert(0, header)
 
     if args.get(_output):
         with open(args[_output], 'w') as outfile:

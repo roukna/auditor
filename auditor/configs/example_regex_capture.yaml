@@ -1,8 +1,13 @@
-# Keys are regexs, if the regex captures, it the cell with be the first group
-# otherwise it will return the value of the key: value pair
-# If a regex applies to more than one the first will be applied
-#
-# These throw exceptions like no tommorrow but most of those are expected
+# These regexs are used to map some values to other ones.
+# For example we may want "Negative" to always be "NEGATIVE"
+
+# These regexs will be tested in order from first to last and the first
+# one that applies will be used and the others will not be.
+
+# If the regex pattern has a capture, the first captured group will be
+# used as the value for that cell, otherwise if a regex is matched
+# and a value is provided, that value will be put into the cell
+
 - pattern: '1[aA]'
   value: 1A
 - pattern: 'Negative'
