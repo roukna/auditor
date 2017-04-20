@@ -37,7 +37,7 @@ def main(args=docopt(docstr)):
         global config
         config = yaml.load(config_file.read())
 
-    csv_file = open(args[_file], 'r')
+    csv_file = open(args[_file], 'r', encoding=config['csv_encoding'])
     data = csv.reader(csv_file, **config['csv_conf'])
 
     if not args[_do_clean]:
@@ -154,7 +154,7 @@ def do_clean(data):
     return new_rows
 
 def rows_format(rows):
-    quotechar = config['csv_conf']['quotechar']
+    quotechar = config['quotechar_write']
     delim = config['csv_conf']['delimiter']
     text = None
     for row in rows:
