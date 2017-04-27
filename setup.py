@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='auditor',
-      version='0.0.1',
+      version='1.0.0',
       description='Makes sure your CSV data is complian.',
       url='http://github.com/pfwhite/auditor',
       author='Patrick White',
