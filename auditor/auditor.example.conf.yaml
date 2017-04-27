@@ -31,6 +31,9 @@ csv_conf:
   delimiter: ","
   quotechar: "\""
 
+quotechar_write: "\""
+csv_encoding: utf-8
+
 # list of all mappings available
 maps: &maps
   - &format_date format_date
