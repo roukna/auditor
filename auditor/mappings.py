@@ -16,17 +16,17 @@ class Mappings(object):
         self.verbose = kwargs.get('verbose')
 
         self.whitelists = {}
-        for item in config['whitelist']:
+        for item in config.get('whitelist') or []:
             with open(item['vals_file_path']) as values_file:
                 self.whitelists[item['header_name']] = self.parse(values_file)
 
         self.blacklists = {}
-        for item in config['blacklist']:
+        for item in config.get('blacklist') or []:
             with open(item['vals_file_path']) as values_file:
                 self.blacklists[item['header_name']] = self.parse(values_file)
 
         self.regexs = {}
-        for item in config['regexs']:
+        for item in config.get('regexs') or []:
             with open(item['vals_file_path']) as values_file:
                 self.regexs[item['header_name']] = self.parse(values_file)
 

@@ -1,0 +1,25 @@
+* Examples
+Contained in this directory are various examples which showcase different functionalities of auditor.
+** Running the examples
+Make sure to install auditor to your environment. This can be done by running the following command
+in the project root.
+
+#+BEGIN_SRC shell
+pip3 install -e .
+#+END_SRC
+
+Then run the shell script for the example you want to see run and look at the output in its corresponding
+directory
+** Making more examples
+If you want to contribute and show others how you use auditor please feel free to add examples.
+
+An example directory should contain
+  - a CSV with synthetic data to run through
+  - a config for that example
+  - all helper yaml files needed, whitelists etc
+
+Additionally please provide a bash script which will run auditor with your files in this directory with
+the same name as your example directory which contains the files you need. This script should run auditor
+twice, generating the unclean and clean versions of the csv and save them in the example's directory.
+
+

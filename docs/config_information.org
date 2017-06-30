@@ -201,7 +201,7 @@ error_strings:
   
 #+END_SRC
 ** whitelist and blacklist
-REQUIRED, but it can be empty
+NOT REQUIRED
 
 This is a list of dictionaries that specify the linkage between the header and a whitelist file.
 These whitelist files are single lists that contain a list of allowable or prohibited items for
@@ -239,7 +239,7 @@ This is what the configs/whitelisted_subjects.yaml file would look like
 
 blacklisting functions exactly the same.
 ** regexs
-REQUIRED, but it can be empty
+NOT REQUIRED
 
 This block is one of the most powerful. This defines another mapping used by auditor to transform data
 in cells but it uses regexs to do so. For example we may want "Negative" to always be "NEGATIVE"
