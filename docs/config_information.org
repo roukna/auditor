@@ -142,7 +142,7 @@ REQUIRED
 
 This is the string passed to python3 when loading the file. This should be 'utf-8' most of the time
 but there may come times you need alternative encodings to open the file.
-** maps includeing arg_maps
+** maps including arg_maps
 REQUIRED, but you shouldnt change it most likely
 
 This will never change until more functionality is added to auditor.

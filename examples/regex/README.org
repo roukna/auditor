@@ -1,0 +1,61 @@
+* Clean data
+Suppose you are a data analyst interested in how data collection groups are providing results data
+because some records have strings where they should have numbers, or units are incorrectly formatted.
+
+In this instance you need to get rid of that "the test result was" string that exists before all the
+numeric values in your result column. We also would like to drop whole columns that we dont
+care about
+
+This example will remove the date_time_stamp and study_id fields from the synthetic data as well
+as showing how to whitelist certain loinc_component values
+
+** The data
+| result                    | loinc_component | loinc_code | low | high | units     | date_time_stamp | study_id |
+|---------------------------+-----------------+------------+-----+------+-----------+-----------------+----------|
+| the test result was 3.813 | "Leukocytes"    | "26464-8"  | 3.8 | 10.8 | "10*3/uL" |      2112-10-27 |        1 |
+** The relevant config portions
+
+Since we want to drop whole columns we would utilize the headers key in the config.yaml
+
+#+BEGIN_SRC yaml
+header_meaning:
+  lab_type: &lab_type loinc_code
+  value: &value result
+  unit: &unit units
+
+headers: 
+  - *lab_type
+  - *value
+  - *unit
+#+END_SRC
+
+First we give the headers good, meaningful names in the header_meaning key. Note that we do
+not have to list out all the headers, just the ones that we will care about. Then we refer back
+to those headers in the 'headers' top level key by listing them in the order that we want them.
+
+
+Additionally since Auditor applies mappings to columns we need to define which mappings should
+be applied to our rows
+#+BEGIN_SRC yaml
+regexs:
+  - header_name: *value
+    vals_file_path: regex/numbers_only.yaml
+
+mappings:
+  - header: *lab_type
+    maps: []
+  - header: *value
+    maps: [*regex]
+  - header: *unit
+    maps: [*empty_okay]
+#+END_SRC
+
+Here we apply mappings to some the columns. The lab_type has a whitelist mapping because we only want
+certain labs. The unit column has the 'empty_okay' mapping which will allow null values in case some
+of our lab results are unitless which could happen for quantitative measures.
+
+** Static config options
+There will be numerous config options that are used in the application in order to implement certain
+features. If when looking at the final config you see data that has not been listed in this document
+explicitly and you have questions, please refer to the docs folder in this project and look for the 
+exaushtive treatment of the various configuration options.
