@@ -1,0 +1,21 @@
+## [1.1.0] 8-13-2017
+### Added
+ * add regex example (Patrick White)
+ * add deidentify example (Patrick White)
+ * add config documentation (Patrick White)
+
+### Bugfix
+ * bugfix for blank lines, empty config keys (Patrick White)
+
+## [1.0.0] 
+ * updates setup.py to be 1.0.0 (Patrick White)
+ * let users use different encodings, and add quotechars on the way out (Patrick White)
+ * allows config to not define new headers (Patrick White)
+ * organize repo secondary configs and makes deploy easier (Patrick White)
+ * enable sorting on clean (Patrick White)
+ * make row level maps work (Patrick White)
+ * adds empty code (Patrick White)
+ * adds map chaining, uses regex lookup (Patrick White)
+ * adds documentation and usage notes (Patrick White)
+ * fully functional (Patrick White)
+ * Initial commit (PFWhite)

@@ -1,4 +1,4 @@
-# auditor
+# auditor v1.1.0
 Makes sure your CSV's remain compliant
 
 There are times that CSV files need either cleaning, or replacement of certain items, or filtering 
@@ -10,6 +10,10 @@ everything is ready to go before your application needs to do the rest of the da
 ## Configs
 
 Look in docs/config_information.org for a detailed treatment of the configuration options
+
+## Examples
+
+Look in the examples folder for some examples and feel free to add some!
 
 ## Usage
 
