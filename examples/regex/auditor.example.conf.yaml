@@ -1,0 +1,55 @@
+header_meaning:
+  lab_type: &lab_type loinc_code
+  value: &value result
+  unit: &unit units
+
+# put expected headers here, any others will be ignored
+headers: &headers
+  - *lab_type
+  - *value
+  - *unit
+
+# csv format stuff
+csv_conf:
+  delimiter: ","
+  quotechar: "\""
+
+quotechar_write: "\""
+csv_encoding: utf-8
+
+# list of all mappings available
+maps: &maps
+  - &format_date format_date
+  - &whitelist is_whitelist
+  - &blacklist is_blacklist
+  - &regex regex
+  - &empty_okay empty_okay
+
+# these are maps that use more than one cell
+arg_maps:
+  - &greater_equal greater_equal
+
+control_strings:
+  empty_okay: "<NO_VALUE_NEEDED>"
+
+error_strings:
+  bad_data: "<BAD_DATA>"
+  empty_cell: "<EMPTY_CELL>"
+  blacklisted: "<ON_BLACKLIST>"
+  not_whitelisted: "<NOT_ON_WHITELIST>"
+  no_regex_match: "<NO_REGEX_MATCH_FOUND>"
+
+# list of regex mapping files and their headers
+regexs: &regexs
+  - header_name: *value
+    vals_file_path: regex/numbers_only.yaml
+
+# mappings try to parse data to another form
+# will pass the value through the maps in left to right order
+mappings: &mappings
+  - header: *lab_type
+    maps: []
+  - header: *value
+    maps: [*regex]
+  - header: *unit
+    maps: [*empty_okay]
