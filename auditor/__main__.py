@@ -130,13 +130,16 @@ def get_map(headers, mappings):
     return apply_map
 
 def get_new_data_row(row, indices, header, apply_map):
-    raw = [row[index] for index in indices]
-    mapped = [apply_map(index, raw) for index, cell in enumerate(raw)]
-    valid = True
-    for cell in mapped:
-        if cell == '' or cell == None:
-            valid = False
-    return mapped if valid else None
+    if len(row):
+        raw = [row[index] for index in indices]
+        mapped = [apply_map(index, raw) for index, cell in enumerate(raw)]
+        valid = True
+        for cell in mapped:
+            if cell == '' or cell == None:
+                valid = False
+        return mapped if valid else None
+    else:
+        return None
 
 def do_clean(data):
     new_rows = []

@@ -1,0 +1,349 @@
+* Understanding YAML
+The yaml configs in the redi2 tools are turned directly into python data structures.
+The will either be dictionaries, lists, strings, numbers, None values, or any valid nesting of those.
+
+Ampersands denote references to data and can be dereferenced with an asterisk followed by the same string.
+This is useful for refering to the same magic string throughout a config without risk of mistyping it.
+An invalid reference will error at yaml parse time which allows you to catch the mistake early before anything
+else has been done.
+
+A google search can help with any other questions about yaml you may have.
+* Top level config keys
+The configuration in Auditor is a dictionary which has many top level keys that contain different information about
+how the application will run. This section will go over the responsibility and use of each of these keys.
+
+** header_meaning
+This section is REQUIRED
+
+This section has two purposes. It is used to give meaning assign references to particular headers in the csv as
+well as list the headers out that we will be utilizing in the auditor run.
+
+For instance, say we have a csv with the following structure:
+| EMR_OBFUSCATED_SUBJECT_KEY | loinc_code | OBI_0001933 |
+|----------------------------+------------+-------------|
+|                    123-456 |     897987 |        5.45 |
+
+Now these headers are not very useful, however, the python csv library needs to be able to dereference the
+particular values by their column name. So it would help if we could refer to them throught the config with
+a name that made more sense.
+
+An example config for this csv would be:
+
+#+BEGIN_SRC yaml
+
+header_meaning:
+  subject: &subject EMR_OBFUSCATED_SUBJECT_KEY
+  test_type: &test_type loinc_code
+  value: &value OBI_0001933
+  
+#+END_SRC
+** sort
+This is NOT REQUIRED
+
+This section specifies a header on which to sort. Frequently it helps to sort on a particular csv column.
+
+Using the csv from the header_meaning section a proper config for the sort field would look like:
+
+#+BEGIN_SRC yaml
+
+sort:
+  header: *subject
+  
+#+END_SRC
+
+This will cause the auditor output to be sorted based on the value in the column with header 
+"EMR_OBFUSCATED_SUBJECT_KEY".
+** new_headers
+This is NOT REQUIRED
+
+Frequently one will need to add data to a csv based on information from an outside source.
+This is a lot like a join in sql where one of the fields in a row in the csv is used as the field on
+which two csv's are joined. It can also be seen like a key for a lookup table to bring additional 
+information in. 
+
+The configuration dictionary specifies new headers and how to generate them. Lets look at an example,
+still using our csv from earlier:
+
+#+BEGIN_SRC yaml
+
+new_headers:
+  favorite_color:
+    name: &favorite_color FAVORITE_COLOR_FOR_SUBJECT
+    key: *subject
+    value: *favorite_color
+    default: red
+    lookup_file: &favorite_colors_path configs/favorite_color_lookup_by_subject.yaml
+  
+#+END_SRC
+
+And the favorite_color_lookup_by_subject.yaml will look like
+
+#+BEGIN_SRC yaml
+
+123-456: 'green'
+456-789: purple
+
+#+END_SRC
+
+So how does the application interprete this?
+
+These configs specify to auditor that there should be a new column added to auditor's output
+and it should have the header 'FAVORITE_COLOR_FOR_SUBJECT'. This is denoted with the 'name' key.
+
+Next it says where we can find the lookup value. In this case we would look in the column that corresponds
+to the dereferenced value of the 'subject' reference. 
+
+Then it specifies that the value of the lookup should be placed in the 'favorite_color' column.
+The default key says that any row for which auditor cannot find a corresponding key: value pair, it should put
+the default key's value in that cell.
+
+Finally there is the path to the lookup file. This is also a yaml file with one dictionary. In our example 
+this gives the favorite color of the corresponding subject key. Notice that strings in yaml can be enclosed in
+quotes or not. 
+** headers
+This is REQUIRED
+
+This keys is a yaml list of the the names of the headers in the order that you want them. Going back to our
+running example, a valid config would look like:
+
+#+BEGIN_SRC yaml
+
+headers:
+  - *subject
+  - *test_type
+  - *value
+  - *favorite_color
+  
+#+END_SRC
+
+This results in a csv with all those headers included in it.
+
+NOTE that if there were additional columns in the input csv then those columns would be stripped out of the 
+output file. This headers block is the definitive list of what makes it into the output.
+** csv_conf
+This is REQUIRED
+
+This specifies the delimiter and quote character in the input csv
+
+#+BEGIN_SRC yaml
+
+csv_conf:
+  delimiter: ","
+  quotechar: "\""
+
+#+END_SRC
+** quotechar_write
+REQUIRED
+
+This is a single string specifying the outgoing quote character. The optimus tool expects double quotes
+so unless there is a reason to change this, it should remain as \"
+** csv_encoding
+REQUIRED
+
+This is the string passed to python3 when loading the file. This should be 'utf-8' most of the time
+but there may come times you need alternative encodings to open the file.
+** maps includeing arg_maps
+REQUIRED, but you shouldnt change it most likely
+
+This will never change until more functionality is added to auditor.
+Since these are used to indicate which functions the mappings object should call on any individual cell.
+
+#+BEGIN_SRC yaml
+
+maps: &maps
+  - &format_date format_date
+  - &whitelist is_whitelist
+  - &blacklist is_blacklist
+  - &regex regex
+  - &empty_okay empty_okay
+
+arg_maps:
+  - &greater_equal greater_equal
+  
+#+END_SRC
+
+The maps currently available as of [2017-06-28 Wed] 
+are the following
+*** format_date
+formats dates to be in redcap form which is 'YYYY-MM-DD'
+*** is_whitelist
+checks to see if the value is on the whitelist and if not will put in a not_whitelisted error_string
+in the cell
+*** is_blacklist
+checks to see if the value is not on the blacklist and if it is then auditor will put in a 
+blacklisted control_string in the cell
+*** regex
+utilizes the regex block to pull specific information from the cell or provide a default value when
+a particular pattern is encountered
+*** empty_okay
+lets the row pass through during the clean step when there is nothing in the cell
+*** greater_equal
+outputs a bad_data control string when the first arg is not greater equal than the second
+
+** control_strings and error_strings
+REQUIRED, but you shouldnt change most likely
+
+This will never change until more functionality is added to auditor.
+These are used by the application to overwrite cells in various scenarios.
+The only case that these could change is if more functionality is added to the application
+
+#+BEGIN_SRC yaml
+
+control_strings:
+  empty_okay: "<NO_VALUE_NEEDED>"
+
+error_strings:
+  bad_data: "<BAD_DATA>"
+  empty_cell: "<EMPTY_CELL>"
+  blacklisted: "<ON_BLACKLIST>"
+  not_whitelisted: "<NOT_ON_WHITELIST>"
+  no_regex_match: "<NO_REGEX_MATCH_FOUND>"
+  
+#+END_SRC
+** whitelist and blacklist
+NOT REQUIRED
+
+This is a list of dictionaries that specify the linkage between the header and a whitelist file.
+These whitelist files are single lists that contain a list of allowable or prohibited items for
+the name of the col in the header_name key
+
+This is a minimal whitelist block
+
+#+BEGIN_SRC yaml
+
+whitelist:
+
+#+END_SRC
+
+This is a normal whitelist block
+
+#+BEGIN_SRC yaml
+
+whitelist: &whitelist_vals
+  - header_name: *lab_type
+    vals_file_path: configs/whitelisted_labs.yaml
+  - header_name: *subject
+    vals_file_path: configs/whitelisted_subjects.yaml
+
+#+END_SRC
+
+This is what the configs/whitelisted_subjects.yaml file would look like
+
+#+BEGIN_SRC yaml
+
+- 123-456
+- 456-789
+- 987-312
+
+#+END_SRC
+
+blacklisting functions exactly the same.
+** regexs
+NOT REQUIRED
+
+This block is one of the most powerful. This defines another mapping used by auditor to transform data
+in cells but it uses regexs to do so. For example we may want "Negative" to always be "NEGATIVE"
+
+Here is an example config and corresponding lookup
+
+#+BEGIN_SRC yaml
+
+regexs: &regexs
+  - header_name: *value
+    vals_file_path: configs/value_capture.yaml
+
+#+END_SRC
+
+regex lookup file at configs/value_capture.yaml
+#+BEGIN_SRC yaml
+
+- pattern: 'Negative'
+  value: NEGATIVE
+- pattern: '1[aA]'
+  value: 1A
+- pattern: 'N|no'
+  value: 'NO'
+- pattern: '([0-9]*|[0-9]+\.[0-9]+)'
+
+#+END_SRC
+
+These regexs will be tested in order from first to last and the first
+one that applies will be used and the others will not be.
+
+If the regex pattern has a capture, the first captured group will be
+used as the value for that cell, otherwise if a regex is matched
+and a value is provided, that value will be put into the cell
+
+So the regexs in the configs/value_capture.yaml will be used in the following way:
+
+#+BEGIN_SRC python
+
+# a cell from the csv
+cell
+for pattern, value in regexs:
+    if pattern.matches(cell):
+        return pattern.captured if captured else value
+
+#+END_SRC
+
+The preceding is pseudocode but it gives you an idea of the procedure.
+
+Looking back at the value_capture.yaml the last line only has a pattern. This is okay because it uses
+the capture or whatever was matched by the regex in parenthesis.
+NOTE only the first capture in a regex will be used. The rest will be ignored.
+The capture functionality is used in cases where information is ill formatted inside of some text.
+The current example grabs a number pattern out of some text.
+
+** mappings
+REQUIRED, This is the big one and perhaps the most important config block.
+
+This mappings block defines which procedures should be applied to which columns and in what order.
+
+For example:
+#+BEGIN_SRC yaml
+
+mappings: &mappings
+  - header: *test_date
+    maps: [*format_date]
+  - header: *lab_type
+    maps: []
+  - header: *value
+    maps: [*regex, *blacklist]
+  - header: *subject
+    maps: [*blacklist]
+  - header: *unit
+    maps: [*empty_okay]
+  - header: *consent_date
+    maps:
+      - func: *greater_equal
+        args: [*test_date, *consent_date]
+        retval: [*consent_date]
+      - *format_date
+
+#+END_SRC
+
+This is the default config that was built for the HCV Target project. That project had CSV files which
+contained, dates the tests took place, the type of the lab, the value of the lab, the subject to which 
+the lab applied, the unit, and we used the new_header to bring in the subject's consent date so that 
+we would be able to strip out tests that were before the date of consent.
+
+So how are these criteria applied? The test_date column has only one mapping applied to it and that is 
+formatting the date to the 'YYYY-MM-DD' format that redcap requires.
+
+The lab_type has no mappings listed and is therefore a NO-OP and will pass the value along as is.
+
+The value will pass through a regex file defined in the regex block. The specific file that is used will
+be specified there. Then, after useing that as a lookup, their is a black list defined to strip out any
+values that should not go through. These will be things like 'SEE_COMMENT' or any other type of information
+that has no place in what is usually a numeric field.
+
+The subject column goes through the blacklist to strip out any people who may have left the study but 
+still continue to have their information brought to us.
+
+The unit column has empty_okay. This lets null values through. We utilize this because there are times
+that the unit is apparent or meaningless depending on the test. In these cases we dont want auditor
+to drop the row during its cleaning step.
+
+Finally the consent_date uses an arg_map. arg_maps take multiple cells from a row and do something based
+of of it. In this case, we want to make sure that test_dates that are after the consent dates stay around
+and any other are discarded because they are bad data.
