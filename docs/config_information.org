@@ -156,6 +156,7 @@ maps: &maps
   - &blacklist is_blacklist
   - &regex regex
   - &empty_okay empty_okay
+  - &strip_whitespace strip_whitespace
 
 arg_maps:
   - &greater_equal greater_equal
@@ -177,6 +178,8 @@ utilizes the regex block to pull specific information from the cell or provide a
 a particular pattern is encountered
 *** empty_okay
 lets the row pass through during the clean step when there is nothing in the cell
+*** strip_whitespace
+Removes trailing and leading whitespace from the cell
 *** greater_equal
 outputs a bad_data control string when the first arg is not greater equal than the second
 

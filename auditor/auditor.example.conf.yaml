@@ -41,6 +41,7 @@ maps: &maps
   - &blacklist is_blacklist
   - &regex regex
   - &empty_okay empty_okay
+  - &strip_whitespace strip_whitespace
 
 # these are maps that use more than one cell
 arg_maps:
@@ -85,7 +86,7 @@ mappings: &mappings
   - header: *value
     maps: [*regex, *blacklist]
   - header: *subject
-    maps: [*blacklist]
+    maps: [*strip_whitespace, *blacklist]
   - header: *unit
     maps: [*empty_okay]
   - header: *consent_date

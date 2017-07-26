@@ -93,9 +93,8 @@ class Mappings(object):
                             return match.group(1)
                         except Exception as ex:
                             if self.verbose:
-                                print('deep regex exception')
-                                print(ex)
-                                return regex.get('value')
+                              print('no matched group found for {}, trying to use the value key'.format(item))
+                            return regex.get('value')
                 # no match found
                 return self.no_regex_match
         except Exception as ex:
@@ -103,6 +102,10 @@ class Mappings(object):
                 print('regex exception')
                 print(ex)
             return self.bad_data
+
+    def strip_whitespace(self, **kwargs):
+        item = kwargs.get('item')
+        return item.strip()
 
     def empty_okay(self, **kwargs):
         item = kwargs.get('item')
