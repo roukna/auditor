@@ -1,4 +1,4 @@
-# auditor v1.1.0
+# auditor v1.2.0
 Makes sure your CSV's remain compliant
 
 There are times that CSV files need either cleaning, or replacement of certain items, or filtering 

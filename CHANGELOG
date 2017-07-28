@@ -1,3 +1,10 @@
+## [1.2.0] 8-28-2017
+### Added
+* add strip_whitespace mapping (Patrick White)
+
+### Bugfix
+* fix regex default matching (Patrick White)
+
 ## [1.1.0] 8-13-2017
 ### Added
  * add regex example (Patrick White)
@@ -7,7 +14,7 @@
 ### Bugfix
  * bugfix for blank lines, empty config keys (Patrick White)
 
-## [1.0.0] 
+## [1.0.0]
  * updates setup.py to be 1.0.0 (Patrick White)
  * let users use different encodings, and add quotechars on the way out (Patrick White)
  * allows config to not define new headers (Patrick White)
@@ -19,3 +26,4 @@
  * adds documentation and usage notes (Patrick White)
  * fully functional (Patrick White)
  * Initial commit (PFWhite)
+
