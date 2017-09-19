@@ -1,0 +1,5 @@
+-e git+git@github.com:DevMattM/auditor.git@961493e057f71e4c9a65456e3fe3cc76b37ed1ed#egg=auditor
+docopt==0.6.2
+python-dateutil==2.6.1
+PyYAML==3.12
+six==1.11.0

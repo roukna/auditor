@@ -13,5 +13,8 @@ setup(name='auditor',
               'auditor = auditor.__main__:main',
           ],
       },
-      install_requires=['docopt', 'pyyaml', 'python-dateutil'],
+      install_requires=[
+          'docopt==0.6.2',
+          'pyyaml==3.12',
+          'python-dateutil==2.6.1'],
       zip_safe=False)
