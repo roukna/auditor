@@ -1,7 +1,10 @@
 from setuptools import setup
 
+with open('auditor/version.py') as ver:
+    exec(ver.read())
+
 setup(name='auditor',
-      version='1.2.0',
+      version=__version__,
       description='Makes sure your CSV data is complian.',
       url='http://github.com/pfwhite/auditor',
       author='Patrick White',
