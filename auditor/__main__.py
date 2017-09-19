@@ -8,7 +8,7 @@ Options:
   -v --version                                  Show version
   -o <output.csv> --output=<output.csv>         optional output file for results
   -c --clean                                    remove rows of a csv that have control strings
-  --verbose                                  print errors with the mappings handler
+  --verbose                                     print errors with the mappings handler
 
 Instructions:
   First run auditor on the file you want to alter. This will give a csv with the same number of
