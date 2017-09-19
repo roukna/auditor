@@ -1,13 +1,14 @@
 docstr = """
 Auditor
 
-Usage: auditor.py [-hcv] (<file> <config>) [-o <output.csv>] [-c --clean] [-v --verbose]
+Usage: auditor.py [-hcv] (<file> <config>) [-o <output.csv>] [-c --clean] [--verbose]
 
 Options:
   -h --help                                     show this message and exit
+  -v --version                                  Show version
   -o <output.csv> --output=<output.csv>         optional output file for results
   -c --clean                                    remove rows of a csv that have control strings
-  -v --verbose                                  print errors with the mappings handler
+  --verbose                                  print errors with the mappings handler
 
 Instructions:
   First run auditor on the file you want to alter. This will give a csv with the same number of
@@ -25,6 +26,7 @@ from docopt import docopt
 import yaml
 
 from .mappings import Mappings
+from auditor.version import __version__
 
 _file = '<file>'
 _config = '<config>'
@@ -32,7 +34,8 @@ _output = '--output'
 _do_clean = '--clean'
 _verbose = '--verbose'
 
-def main(args=docopt(docstr)):
+def main():
+    args=docopt(docstr, version=__version__)
     with open(args[_config], 'r') as config_file:
         global config
         config = yaml.load(config_file.read())
@@ -170,7 +173,6 @@ def rows_format(rows):
     return text + '\n'
 
 if __name__ == '__main__':
-    args = docopt(docstr)
-    main(args)
+    main()
     exit()
 
