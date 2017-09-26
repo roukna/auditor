@@ -34,8 +34,7 @@ _output = '--output'
 _do_clean = '--clean'
 _verbose = '--verbose'
 
-def main():
-    args=docopt(docstr, version=__version__)
+def main(args):
     with open(args[_config], 'r') as config_file:
         global config
         config = yaml.load(config_file.read())
@@ -172,7 +171,11 @@ def rows_format(rows):
             text = '\n'.join([text, line])
     return text + '\n'
 
+def cli_run():
+    args = docopt(docstr, version=__version__)
+    main(args)
+
 if __name__ == '__main__':
-    main()
+    cli_run()
     exit()
 

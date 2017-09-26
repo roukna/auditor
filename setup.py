@@ -13,7 +13,7 @@ setup(name='auditor',
       packages=['auditor'],
       entry_points={
           'console_scripts': [
-              'auditor = auditor.__main__:main',
+              'auditor = auditor.__main__:cli_run',
           ],
       },
       install_requires=[
