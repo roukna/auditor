@@ -1,8 +1,16 @@
+## [1.3.0] 10-24-2017
+### Added
+ * add docopt support (Matthew McConnell)
+ * clean up version and dev-reqs files (Matthew McConnell)
+ * update auditor main to use new version file (Matthew McConnell)
+ * create a version file (Matthew McConnell)
+ * specify the specific version of requirements (Matthew McConnell)
+
 ## [1.2.0] 8-28-2017
 ### Added
 * add strip_whitespace mapping (Patrick White)
 
-### Bugfix
+### Fixed
 * fix regex default matching (Patrick White)
 
 ## [1.1.0] 8-13-2017
@@ -11,7 +19,7 @@
  * add deidentify example (Patrick White)
  * add config documentation (Patrick White)
 
-### Bugfix
+### Fixed
  * bugfix for blank lines, empty config keys (Patrick White)
 
 ## [1.0.0]
